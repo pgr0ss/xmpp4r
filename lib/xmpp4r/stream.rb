@@ -203,12 +203,14 @@ module Jabber
           when 'features'
             stanza = element
             element.each { |e|
-              if e.name == 'mechanisms' and e.namespace == 'urn:ietf:params:xml:ns:xmpp-sasl'
-                e.each_element('mechanism') { |mech|
-                  @stream_mechanisms.push(mech.text)
-                }
-              else
-                @stream_features[e.name] = e.namespace
+              if e.respond_to?(:name)
+                if e.name == 'mechanisms' and e.namespace == 'urn:ietf:params:xml:ns:xmpp-sasl'
+                  e.each_element('mechanism') { |mech|
+                    @stream_mechanisms.push(mech.text)
+                  }
+                else
+                  @stream_features[e.name] = e.namespace
+                end
               end
             }
             Jabber::debuglog("FEATURES: received")
@@ -587,9 +589,9 @@ module Jabber
         end
       end
 
-      # Order Matters here! If this method is called from within 
-      # @parser_thread then killing @parser_thread first would 
-      # mean the other parts of the method fail to execute. 
+      # Order Matters here! If this method is called from within
+      # @parser_thread then killing @parser_thread first would
+      # mean the other parts of the method fail to execute.
       # That would be bad. So kill parser_thread last
       @fd.close if @fd and !@fd.closed?
       @status = DISCONNECTED
